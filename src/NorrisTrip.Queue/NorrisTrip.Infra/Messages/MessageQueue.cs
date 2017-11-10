@@ -15,7 +15,7 @@ namespace NorrisTrip.Infra.Messages
         private readonly IModel _channel;
         private readonly object _locker;
 
-        public MessageQueue(string connectionString, string nameExchange, string route)
+        public MessageQueue(string connectionString, string nameExchange, string route, string queueName)
         {
             _nameExchange = nameExchange;
             _route = route;
@@ -27,6 +27,12 @@ namespace NorrisTrip.Infra.Messages
             _locker = new object();
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
+
+            //Warm-Up Rabbit
+            _channel.ExchangeDeclare(nameExchange, ExchangeType.Topic, true);
+            _channel.QueueDeclare(queueName, false, false, false, null);
+            _channel.QueueBind(queueName, nameExchange, route, null);
+
         }
 
         public void Publish(BehaviorData data)

@@ -9,7 +9,6 @@ namespace NorrisTrip.Infra.Messages
 {
     public class MessageReceiver : IMessageReceiver, IDisposable
     {
-        private readonly string _queueName;
         private readonly TimeSpan _timeOut;
         private readonly object _locker;
         private readonly IConnection _connection;
@@ -18,9 +17,8 @@ namespace NorrisTrip.Infra.Messages
         private bool _cancelationToken;
         public event Action<string> Received;
 
-        public MessageReceiver(string connectionString, string queueName, TimeSpan timeOut)
+        public MessageReceiver(string connectionString, string nameExchange, string route, string queueName, TimeSpan timeOut)
         {
-            _queueName = queueName;
             _timeOut = timeOut;
             var factory = new ConnectionFactory
             {
@@ -30,7 +28,14 @@ namespace NorrisTrip.Infra.Messages
             _locker = new object();
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
+
+            //Warm-Up Rabbit
+            _channel.ExchangeDeclare(nameExchange, ExchangeType.Topic, true);
+            _channel.QueueDeclare(queueName, false, false, false, null);
+            _channel.QueueBind(queueName, nameExchange, route, null);
+
             _subscription = new Subscription(_channel, queueName, false);
+
         }
 
 

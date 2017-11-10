@@ -22,19 +22,22 @@ namespace NorrisTrip.DI
 
             Bind<QueueConsumer>()
                 .ToSelf()
-                .WithConstructorArgument("queueName", ConfigurationManager.AppSettings["QueueName"]);
+                .WithConstructorArgument("queueName", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.QueueName"]);
 
             // Message Queues
             Bind<IMessageReceiver>().To<MessageReceiver>()
                 .WithConstructorArgument("connectionString", ConfigurationManager.ConnectionStrings["NurrisTrip.RabbitMQ"].ConnectionString)
-                .WithConstructorArgument("queueName", "heatMapMap")
+                .WithConstructorArgument("nameExchange", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.NameExchange"])
+                .WithConstructorArgument("route", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.Route"])
+                .WithConstructorArgument("queueName", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.QueueName"])
                 .WithConstructorArgument("timeOut", TimeSpan.FromSeconds(10));
 
             Bind<IMessageQueue>().To<MessageQueue>()
                 .InSingletonScope()
                 .WithConstructorArgument("connectionString", ConfigurationManager.ConnectionStrings["NurrisTrip.RabbitMQ"].ConnectionString)
-                .WithConstructorArgument("nameExchange", "behaviorData")
-                .WithConstructorArgument("route", "heatMap");
+                .WithConstructorArgument("nameExchange", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.NameExchange"])
+                .WithConstructorArgument("route", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.Route"])
+                .WithConstructorArgument("queueName", ConfigurationManager.AppSettings["NurrisTrip.RabbitMQ.QueueName"]);
 
 
             Bind<IProcessorMessage>().To<BehaviorProcessor>();
